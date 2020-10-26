@@ -1,0 +1,42 @@
+language: php
+
+php:
+  - '7.0'
+
+cache:
+  directories:
+    - $HOME/.npm
+    - $HOME/.composer/cache
+
+before_install:
+  - nvm install 8
+  - nvm use 8
+
+install:
+  - npm install
+
+script:
+  - npm run lint
+  - npm run build
+
+jobs:
+  include:
+    - stage: test
+    - stage: release
+      php: '7.0'
+      install:
+        - npm install
+        - composer install --prefer-dist --no-interaction --optimize-autoloader
+      script:
+        - npm run build
+        - npm run semantic-release
+
+stages:
+  - test
+  - name: release
+    if: branch = master AND type = push AND fork = false
+
+branches:
+  only:
+    - master
+    - /^renovate\/.+/
